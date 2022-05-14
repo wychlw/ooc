@@ -35,9 +35,11 @@ typedef struct CLASS_T
 
     void *(*operator_add)(void *_this, va_list *ap_p);
     void (*operator_iadd)(void *_this, va_list *ap_p);
+    void (*operator_inc)(void *_this);
     void *(*operator_min)(void *_this, va_list *ap_p);
     void (*operator_imin)(void *_this, va_list *ap_p);
     void *(*operator_mul)(void *_this, va_list *ap_p);
+    void (*operator_dec)(void *_this);
     void (*operator_imul)(void *_this, va_list *ap_p);
     void *(*operator_div)(void *_this, va_list *ap_p);
     void (*operator_idiv)(void *_this, va_list *ap_p);
@@ -77,8 +79,10 @@ void destructor(class *_class, void *_this);
 
 void *add(void *_this, ...);
 void iadd(void *_this, ...);
+void inc(void *_this);
 void *min(void *_this, ...);
 void imin(void *_this, ...);
+void dec(void *_this);
 void *mul(void *_this, ...);
 void imul(void *_this, ...);
 void *_div(void *_this, ...);

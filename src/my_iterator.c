@@ -14,7 +14,7 @@ void iterator_operator_iadd(void *_this, va_list *ap_p)
     int inc_num = va_arg(*ap_p, int);
     for (int i = 0; i < inc_num; i++)
     {
-        this->inc(this);
+        this->obj_base.self_class->operator_inc(this);
     }
 }
 
@@ -33,7 +33,7 @@ void iterator_operator_imin(void *_this, va_list *ap_p)
     int min_num = va_arg(*ap_p, int);
     for (int i = 0; i < min_num; i++)
     {
-        this->dec(this);
+        this->obj_base.self_class->operator_dec(this);
     }
 }
 
@@ -56,18 +56,6 @@ class iterator_c = {
     .operator_imin = iterator_operator_imin};
 
 class *iterator = &iterator_c;
-
-void inc_it(void *_this)
-{
-    iterator_base *this = _this;
-    this->inc(this);
-}
-
-void dec_it(void *_this)
-{
-    iterator_base *this = _this;
-    this->dec(this);
-}
 
 void *it_data(void *_this)
 {

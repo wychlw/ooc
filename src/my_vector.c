@@ -37,8 +37,6 @@ void vector_iterator_constructor(void *_this, va_list *ap_p)
     vector_iterator_base *this = _this;
 
     constructor(iterator, this, ap_p);
-    this->inhert.inc = vector_iterator_inc;
-    this->inhert.dec = vector_iterator_dec;
     this->inhert.data = vector_iterator_data;
 }
 
@@ -46,12 +44,13 @@ void vector_iterator_destructor(void *_this)
 {
     destructor(iterator, _this);
 }
-
 class vector_iterator_c = {
     .type_size = sizeof(vector_iterator_base),
     .constructor = vector_iterator_constructor,
     .destructor = vector_iterator_destructor,
     .operator_eq = vector_iterator_eq,
+    .operator_inc = vector_iterator_inc,
+    .operator_dec = vector_iterator_dec,
     .operator_add = iterator_operator_add,
     .operator_iadd = iterator_operator_iadd,
     .operator_min = iterator_operator_min,
@@ -292,7 +291,7 @@ void vector_insert_iterator(void *_this, vector_iterator_base *position, void *_
 
     iterator_base *it = copy(begin);
 
-    for (; !eq(it, end); inc_it(it))
+    for (; !eq(it, end); inc(it))
     {
         vector_insert(_this, position, it_data(it));
     }

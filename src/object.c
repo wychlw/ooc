@@ -91,6 +91,17 @@ void iadd(void *_this, ...)
     va_end(ap);
 }
 
+void inc(void *_this)
+{
+    const class_base *this = _this;
+
+    if (this->self_class->operator_inc)
+    {
+        this->self_class->operator_inc(_this);
+    }
+
+}
+
 void *min(void *_this, ...)
 {
     const class_base *this = _this;
@@ -119,6 +130,17 @@ void imin(void *_this, ...)
     }
 
     va_end(ap);
+}
+
+void dec(void *_this)
+{
+    const class_base *this = _this;
+
+    if (this->self_class->operator_dec)
+    {
+        this->self_class->operator_dec(_this);
+    }
+
 }
 
 void *mul(void *_this, ...)
