@@ -1,0 +1,7 @@
+CompileFlags:
+    Add: [
+        -xc,
+        -Wall,
+        -Werror,
+        -Iinc
+        ]

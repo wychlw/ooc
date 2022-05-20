@@ -1,4 +1,4 @@
-#include "my_vector.h"
+#include "object.h"
 #include <malloc.h>
 #include <memory.h>
 #include <stddef.h>
@@ -44,10 +44,17 @@ void vector_iterator_destructor(void *_this)
 {
     destructor(iterator, _this);
 }
+
+void vector_iterator_deep_copy(const void *UNUSED(_this), void *UNUSED(_that))
+{
+
+}
+
 class vector_iterator_c = {
     .type_size = sizeof(vector_iterator_base),
     .constructor = vector_iterator_constructor,
     .destructor = vector_iterator_destructor,
+    .deep_copy = vector_iterator_deep_copy,
     .operator_eq = vector_iterator_eq,
     .operator_inc = vector_iterator_inc,
     .operator_dec = vector_iterator_dec,
