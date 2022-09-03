@@ -1,7 +1,7 @@
 #include "my_list.h"
-#include "malloc.h"
-#include "memory.h"
-#include "stdlib.h"
+#include <malloc.h>
+#include <memory.h>
+#include <stdlib.h>
 
 // list_node class
 
@@ -148,19 +148,12 @@ void list_insert(void *_this, list_iterator_base *position, void *data_ptr) {
 void list_insert_const(void *_this, list_iterator_base *position, ...) {
   list_base *this = _this;
 
-  list_node_base *new_node = new (list_node, this->data_size);
-
   va_list ap;
   va_start(ap, position);
-  memcpy(new_node->data_ptr, ap, this->data_size);
 
-  new_node->prv = position->m_node->prv;
-  new_node->nxt = position->m_node;
-  position->m_node->prv = new_node;
-  new_node->prv->nxt = new_node;
+  list_insert(this, position, ap);
 
   va_end(ap);
-  this->m_size++;
 }
 
 void list_insert_range(void *_this, list_iterator_base *position, size_t n,

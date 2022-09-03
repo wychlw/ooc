@@ -1,7 +1,9 @@
 CompileFlags:
     Add: [
+        -Iinc,
+        -I./inc,
+        -I../inc,
         -xc,
         -Wall,
-        -Werror,
-        -Iinc
+        -Werror
         ]

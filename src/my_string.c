@@ -186,7 +186,7 @@ void string_clear(void *_this)
     string_base *this = _this;
 
     this->m_size = 0;
-    (this->m_data)[0]='\n';
+    (this->m_data)[0] = '\n';
 }
 
 void string_push_back(void *_this, void *data_ptr)
@@ -268,6 +268,16 @@ void string_insert_const(void *_this, string_iterator_base *position, ...)
 
     position->offset++;
     (this->m_data)[++this->m_size] = '\0';
+}
+
+void string_push_back_str(void *_this, void *str)
+{
+    size_t len = strlen(str);
+
+    for (size_t i = 0; i < len; i++)
+    {
+        string_push_back(_this, str + i);
+    }
 }
 
 void string_insert_range(void *_this, string_iterator_base *position, size_t n, void *data_ptr)
@@ -459,6 +469,7 @@ static const string_base string_template = {.begin = string_begin,
                                             .clear = string_clear,
                                             .push_back = string_push_back,
                                             .push_back_const = string_push_back_const,
+                                            .push_back_str=string_push_back_str,
                                             .pop_back = string_pop_back,
                                             .insert = string_insert,
                                             .insert_const = string_insert_const,
@@ -484,6 +495,7 @@ void string_constructor(void *_this, va_list *UNUSED(ap_p))
     this->m_capacity = 50;
     this->m_size = 0;
     this->m_data = malloc((this->m_capacity + 1) * sizeof(char));
+    (this->m_data)[0] = '\0';
 }
 
 void string_destructor(void *_this)

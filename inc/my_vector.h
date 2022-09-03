@@ -22,6 +22,8 @@
  */
 extern class *vector_iterator;
 
+struct VECTOR_BASE_T;
+
 /**
  * @brief the base struct of the vector_iterator
  *
@@ -31,7 +33,7 @@ typedef struct VECTOR_ITERATOR_T
 {
     iterator_base inhert;
 
-    void *which_vector;
+    struct VECTOR_BASE_T *which_vector;
     size_t offset;
     size_t data_size;
 } vector_iterator_base;
@@ -101,6 +103,7 @@ typedef struct VECTOR_BASE_T
     void (*resize)(void *_this, size_t new_capacity);
 
     // element access
+    
     /**
      * @brief return the memory holding these data
      *
@@ -152,7 +155,7 @@ typedef struct VECTOR_BASE_T
     void (*push_back_const)(void *_this, ...);
 
     /**
-     * @brief pop a element in the back of a vector
+     * @brief pop a element from the back of a vector
      *
      */
     void (*pop_back)(void *_this);
