@@ -54,7 +54,7 @@ bool list_iterator_eq(void *_this, va_list *ap_p) {
 
   list_iterator_base *that = va_arg(*ap_p, list_iterator_base *);
 
-  return eq(this->m_node, that->m_node);
+  return this->m_node == that->m_node;
 }
 
 void *list_iterator_data(void *_this) {
@@ -140,6 +140,7 @@ void list_insert(void *_this, list_iterator_base *position, void *data_ptr) {
   new_node->prv = position->m_node->prv;
   new_node->nxt = position->m_node;
   position->m_node->prv = new_node;
+  new_node->prv->nxt = new_node;
 
   this->m_size++;
 }
@@ -156,6 +157,7 @@ void list_insert_const(void *_this, list_iterator_base *position, ...) {
   new_node->prv = position->m_node->prv;
   new_node->nxt = position->m_node;
   position->m_node->prv = new_node;
+  new_node->prv->nxt = new_node;
 
   va_end(ap);
   this->m_size++;
@@ -165,7 +167,7 @@ void list_insert_range(void *_this, list_iterator_base *position, size_t n,
                        void *data_ptr) {
   list_base *this = _this;
 
-  for (int i = 0; i < n; i++) {
+  for (size_t i = 0; i < n; i++) {
     this->insert(this, position, data_ptr);
   }
 }
@@ -179,7 +181,7 @@ void list_insert_range_const(void *_this, list_iterator_base *position,
 
   void *data_ptr = ap;
 
-  for (int i = 0; i < n; i++) {
+  for (size_t i = 0; i < n; i++) {
     this->insert(this, position, data_ptr);
   }
 

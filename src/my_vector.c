@@ -1,20 +1,32 @@
+#include "my_vector.h"
 #include "object.h"
+#include <assert.h>
 #include <malloc.h>
 #include <memory.h>
 #include <stddef.h>
+
+static void copy_backward(void *_dst, const void *_src, size_t size)
+{
+    char *dst = _dst;
+    const char *src = _src;
+    for (int i = size - 1; i >= 0; i--)
+    {
+        *(dst + i) = *(src + i);
+    }
+}
 
 // iterator class
 
 void vector_iterator_inc(void *_this)
 {
     vector_iterator_base *this = _this;
-    this->m_data += this->data_size;
+    this->offset++;
 }
 
 void vector_iterator_dec(void *_this)
 {
     vector_iterator_base *this = _this;
-    this->m_data -= this->data_size;
+    this->offset--;
 }
 
 bool vector_iterator_eq(void *_this, va_list *ap_p)
@@ -23,13 +35,14 @@ bool vector_iterator_eq(void *_this, va_list *ap_p)
 
     vector_iterator_base *that = va_arg(*ap_p, vector_iterator_base *);
 
-    return (this->m_data == that->m_data) && (this->data_size == that->data_size);
+    return (this->offset == that->offset) && (this->data_size == that->data_size);
 }
 
 void *vector_iterator_data(void *_this)
 {
     vector_iterator_base *this = _this;
-    return this->m_data;
+    vector_base *this2 = this->which_vector;
+    return this2->m_data + this->data_size * this->offset;
 }
 
 void vector_iterator_constructor(void *_this, va_list *ap_p)
@@ -47,21 +60,19 @@ void vector_iterator_destructor(void *_this)
 
 void vector_iterator_deep_copy(const void *UNUSED(_this), void *UNUSED(_that))
 {
-
 }
 
-class vector_iterator_c = {
-    .type_size = sizeof(vector_iterator_base),
-    .constructor = vector_iterator_constructor,
-    .destructor = vector_iterator_destructor,
-    .deep_copy = vector_iterator_deep_copy,
-    .operator_eq = vector_iterator_eq,
-    .operator_inc = vector_iterator_inc,
-    .operator_dec = vector_iterator_dec,
-    .operator_add = iterator_operator_add,
-    .operator_iadd = iterator_operator_iadd,
-    .operator_min = iterator_operator_min,
-    .operator_imin = iterator_operator_imin};
+class vector_iterator_c = {.type_size = sizeof(vector_iterator_base),
+                           .constructor = vector_iterator_constructor,
+                           .destructor = vector_iterator_destructor,
+                           .deep_copy = vector_iterator_deep_copy,
+                           .operator_eq = vector_iterator_eq,
+                           .operator_inc = vector_iterator_inc,
+                           .operator_dec = vector_iterator_dec,
+                           .operator_add = iterator_operator_add,
+                           .operator_iadd = iterator_operator_iadd,
+                           .operator_min = iterator_operator_min,
+                           .operator_imin = iterator_operator_imin};
 
 class *vector_iterator = &vector_iterator_c;
 
@@ -70,7 +81,8 @@ void *vector_begin(void *_this)
     vector_base *this = _this;
     vector_iterator_base *res = new (vector_iterator);
     res->data_size = this->data_size;
-    res->m_data = this->m_data;
+    res->offset = 0;
+    res->which_vector = this;
     return res;
 }
 
@@ -80,8 +92,9 @@ void *vector_end(void *_this)
 
     vector_iterator_base *res = new (vector_iterator);
 
-    res->m_data = this->m_data + (this->m_size * this->data_size);
+    res->offset = this->m_size;
     res->data_size = this->data_size;
+    res->which_vector = this;
     return res;
 }
 
@@ -113,7 +126,7 @@ void vector_resize(void *_this, size_t new_capacity)
         return;
     }
 
-    memcpy(new_data, this->m_data, this->m_size * this->data_size);
+    copy_backward(new_data, this->m_data, this->m_size * this->data_size);
     free(this->m_data);
     this->m_data = new_data;
     this->m_capacity = new_capacity;
@@ -212,16 +225,21 @@ void vector_insert(void *_this, vector_iterator_base *position, void *data_ptr)
 {
     vector_base *this = _this;
 
+    assert(position->which_vector == this);
+
     if (this->m_size >= this->m_capacity)
     {
         vector_resize(this, this->m_capacity * 1.5);
     }
 
-    memcpy(position->m_data + (this->data_size * 1), position->m_data, (this->m_data + this->m_size * this->data_size) - (position->m_data));
+    copy_backward(this->m_data + position->data_size * position->offset + (this->data_size * 1),
+                  this->m_data + position->data_size * position->offset,
+                  (this->m_data + this->m_size * this->data_size) -
+                      (this->m_data + position->data_size * position->offset));
 
-    memcpy(position->m_data, data_ptr, this->data_size);
+    memcpy(this->m_data + position->offset * position->data_size, data_ptr, this->data_size);
 
-    position->m_data += position->data_size;
+    position->offset++;
     this->m_size++;
 }
 
@@ -229,19 +247,23 @@ void vector_insert_const(void *_this, vector_iterator_base *position, ...)
 {
     vector_base *this = _this;
 
+    assert(position->which_vector == this);
+
     if (this->m_size >= this->m_capacity)
     {
         vector_resize(this, this->m_capacity * 1.5);
     }
 
-    memcpy(position->m_data + (this->data_size * 1), position->m_data, (this->m_data + this->m_size * this->data_size) - (position->m_data));
+    copy_backward(this->m_data + position->data_size * position->offset + (this->data_size * 1),
+           this->m_data + position->data_size * position->offset,
+           (this->m_data + this->m_size * this->data_size) - (this->m_data + position->data_size * position->offset));
 
     va_list ap;
     va_start(ap, position);
 
-    memcpy(position->m_data, ap, this->data_size);
+    memcpy(this->m_data + position->data_size * position->offset, ap, this->data_size);
 
-    position->m_data += position->data_size;
+    position->offset++;
 
     va_end(ap);
     this->m_size++;
@@ -251,18 +273,22 @@ void vector_insert_range(void *_this, vector_iterator_base *position, size_t n, 
 {
     vector_base *this = _this;
 
+    assert(position->which_vector == this);
+
     if (this->m_size >= this->m_capacity)
     {
         vector_resize(this, this->m_capacity * 1.5);
     }
 
-    memcpy(position->m_data + (this->data_size * n), position->m_data, (this->m_data + this->m_size * this->data_size) - (position->m_data));
+    copy_backward((this->m_data + position->data_size * position->offset) + (this->data_size * n),
+           this->m_data + position->data_size * position->offset,
+           (this->m_data + this->m_size * this->data_size) - (this->m_data + position->data_size * position->offset));
 
     for (size_t i = 0; i < n; i++)
     {
-        memcpy(position->m_data, data_ptr, this->data_size);
+        memcpy(this->m_data + position->data_size * position->offset, data_ptr, this->data_size);
 
-        position->m_data += position->data_size;
+        position->offset++;
     }
 
     this->m_size += n;
@@ -272,21 +298,25 @@ void vector_insert_range_const(void *_this, vector_iterator_base *position, size
 {
     vector_base *this = _this;
 
+    assert(position->which_vector == this);
+
     if (this->m_size >= this->m_capacity)
     {
         vector_resize(this, this->m_capacity * 1.5);
     }
 
-    memcpy(position->m_data + (this->data_size * n), position->m_data, (this->m_data + this->m_size * this->data_size) - (position->m_data));
+    memcpy((this->m_data + position->data_size * position->offset) + (this->data_size * n),
+           this->m_data + position->data_size * position->offset,
+           (this->m_data + this->m_size * this->data_size) - (this->m_data + position->data_size * position->offset));
 
     va_list ap;
     va_start(ap, n);
 
     for (size_t i = 0; i < n; i++)
     {
-        memcpy(position->m_data, ap, this->data_size);
+        memcpy(this->m_data + position->data_size * position->offset, ap, this->data_size);
 
-        position->m_data += position->data_size;
+        position->offset++;
     }
     va_end(ap);
     this->m_size += n;
@@ -310,12 +340,17 @@ void vector_erase(void *_this, vector_iterator_base *position)
 {
     vector_base *this = _this;
 
+    assert(position->which_vector == this);
+
     if (this->m_size == 0)
     {
         return;
     }
 
-    memcpy(position->m_data, position->m_data + this->data_size, (this->m_data + (this->data_size * this->m_size)) - (position->m_data + this->data_size));
+    memcpy(this->m_data + position->data_size * position->offset,
+           (this->m_data + position->data_size * position->offset) + this->data_size,
+           (this->m_data + (this->data_size * this->m_size)) -
+               (this->m_data + position->data_size * position->offset + this->data_size));
 
     this->m_size--;
 }
@@ -324,39 +359,43 @@ void vector_erase_range(void *_this, vector_iterator_base *begin, vector_iterato
 {
     vector_base *this = _this;
 
+    assert(begin->which_vector == this && end->which_vector == this);
+
     if (this->m_size == 0)
     {
         return;
     }
 
-    memcpy(begin->m_data, end->m_data, (this->m_data + (this->data_size * this->m_size)) - (end->m_data));
+    memcpy(this->m_data + begin->offset * begin->data_size, this->m_data + end->offset * end->data_size,
+           (this->m_data + (this->data_size * this->m_size)) - (this->m_data + end->offset * end->data_size));
 
-    this->m_size -= (end->m_data - begin->m_data) / this->data_size;
+    this->m_size -=
+        ((this->m_data + end->offset * end->data_size) - (this->m_data + begin->offset * begin->data_size)) /
+        this->data_size;
 }
 
-static const vector_base vector_template = {
-    .begin = vector_begin,
-    .end = vector_end,
-    .size = vector_size,
-    .capacity = vector_capacity,
-    .empty = vector_empty,
-    .resize = vector_resize,
-    .data = vector_data,
-    .get_data = vector_get_data,
-    .at = vector_at,
-    .front = vector_front,
-    .back = vector_back,
-    .clear = vector_clear,
-    .push_back = vector_push_back,
-    .push_back_const = vector_push_back_const,
-    .pop_back = vector_pop_back,
-    .insert = vector_insert,
-    .insert_const = vector_insert_const,
-    .insert_range = vector_insert_range,
-    .insert_range_const = vector_insert_range_const,
-    .insert_iterator = vector_insert_iterator,
-    .erase = vector_erase,
-    .erase_range = vector_erase_range};
+static const vector_base vector_template = {.begin = vector_begin,
+                                            .end = vector_end,
+                                            .size = vector_size,
+                                            .capacity = vector_capacity,
+                                            .empty = vector_empty,
+                                            .resize = vector_resize,
+                                            .data = vector_data,
+                                            .get_data = vector_get_data,
+                                            .at = vector_at,
+                                            .front = vector_front,
+                                            .back = vector_back,
+                                            .clear = vector_clear,
+                                            .push_back = vector_push_back,
+                                            .push_back_const = vector_push_back_const,
+                                            .pop_back = vector_pop_back,
+                                            .insert = vector_insert,
+                                            .insert_const = vector_insert_const,
+                                            .insert_range = vector_insert_range,
+                                            .insert_range_const = vector_insert_range_const,
+                                            .insert_iterator = vector_insert_iterator,
+                                            .erase = vector_erase,
+                                            .erase_range = vector_erase_range};
 
 void vector_constructor(void *_this, va_list *ap_p)
 {
@@ -387,11 +426,10 @@ void vector_deep_copy(const void *_this, void *_that)
     memcpy(that->m_data, this->m_data, that->m_capacity * that->data_size);
 }
 
-class vector_c = {
-    .type_size = sizeof(vector_base),
-    .constructor = vector_constructor,
-    .destructor = vector_destructor,
-    .deep_copy = vector_deep_copy,
-    .iter = &vector_iterator_c};
+class vector_c = {.type_size = sizeof(vector_base),
+                  .constructor = vector_constructor,
+                  .destructor = vector_destructor,
+                  .deep_copy = vector_deep_copy,
+                  .iter = &vector_iterator_c};
 
 class *vector = &vector_c;

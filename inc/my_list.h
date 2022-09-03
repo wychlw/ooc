@@ -19,6 +19,8 @@
 /**
  * @brief class list_node (the prototype of the list_node)
  *
+ * @constructor 
+ *  @para 1 type size
  */
 extern class *list_node;
 
@@ -54,6 +56,8 @@ typedef struct LIST_ITERATOR_BASE_T {
 /**
  * @brief class list (the prototype of the list)
  *
+* @constructor 
+ *  @para 1 type size
  */
 extern class *list;
 

@@ -1,7 +1,0 @@
-[
-{
-  "directory": "D:/Project/ooc/build",
-  "command": "C:\\Programs\\msys64\\clang64\\bin\\clang.exe -I.././inc -g -std=gnu11 -o CMakeFiles\\ooc.dir\\test.c.obj -c D:\\Project\\ooc\\test.c",
-  "file": "D:/Project/ooc/test.c"
-}
-]
