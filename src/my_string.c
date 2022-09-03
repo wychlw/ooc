@@ -3,8 +3,8 @@
 #include <assert.h>
 #include <malloc.h>
 #include <memory.h>
-#include <string.h>
 #include <stddef.h>
+#include <string.h>
 
 static void copy_backward(void *_dst, const void *_src, size_t size)
 {
@@ -186,6 +186,7 @@ void string_clear(void *_this)
     string_base *this = _this;
 
     this->m_size = 0;
+    (this->m_data)[0]='\n';
 }
 
 void string_push_back(void *_this, void *data_ptr)
@@ -383,11 +384,10 @@ void string_fgetc(void *_this, FILE *file)
     string_base *this = _this;
     char ch = fgetc(file);
 
+    string_clear(this);
     if (ch != EOF)
     {
-        (this->m_data)[0] = ch;
-        (this->m_data)[1] = '\0';
-        this->m_size = 1;
+        string_push_back_const(this, ch);
     }
 }
 
@@ -403,9 +403,8 @@ void string_fscan(void *_this, FILE *file)
         {
             break;
         }
-        (this->m_data)[this->m_size++] = ch;
+        string_push_back_const(this, ch);
     }
-    (this->m_data)[this->m_size] = '\n';
 }
 
 void string_fgets(void *_this, FILE *file)
@@ -420,9 +419,8 @@ void string_fgets(void *_this, FILE *file)
         {
             break;
         }
-        (this->m_data)[this->m_size++] = ch;
+        string_push_back_const(this, ch);
     }
-    (this->m_data)[this->m_size] = '\n';
 }
 
 void string_getchar(void *_this)

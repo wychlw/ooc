@@ -13,7 +13,7 @@
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
-            "externalConsole": false,
+            "externalConsole": true,
             "MIMode": "gdb",
             "miDebuggerPath": "C:\\Programs\\msys64\\mingw64\\bin\\gdb.exe",
             "setupCommands": [
@@ -22,8 +22,7 @@
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
                 }
-            ],
-            "preLaunchTask": "C/C++: gcc.exe 生成活动文件"
+            ]
         }
     ]
 }

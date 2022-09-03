@@ -6,7 +6,7 @@ set(CMAKE_C_STANDARD 11)
 include(CTest)
 enable_testing()
 
-add_compile_options(-Wall -Wextra)
+add_compile_options(-Wall -Wextra -g)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
